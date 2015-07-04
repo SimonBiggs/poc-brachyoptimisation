@@ -18,10 +18,14 @@ from scipy.optimize import basinhopping
 
 class BasinhoppingWrapper(object):
 
-    def __init__(self, n=5, confidence=0.00001, debug=None, bounds=None, **kwargs):
+    def __init__(self, n=5, 
+                 optimiser_confidence=0.00001, 
+                 basinhopping_confidence=0.00001, 
+                 debug=None, bounds=None, **kwargs):
         self.to_minimise = kwargs['to_minimise']
         self.n = n
-        self.confidence = confidence
+        self.optimiser_confidence = optimiser_confidence
+        self.basinhopping_confidence = basinhopping_confidence
 
         self.initial = kwargs['initial']
         self.step_noise = kwargs['step_noise']
@@ -58,12 +62,12 @@ class BasinhoppingWrapper(object):
             self.current_success_number = 1
 
         elif (minimise_function_result >=
-              np.nanmin(self.successful_results) + self.confidence):
+              np.nanmin(self.successful_results) + self.basinhopping_confidence):
             # Reject result
             0
 
         elif (minimise_function_result >=
-              np.nanmin(self.successful_results) - self.confidence):
+              np.nanmin(self.successful_results) - self.basinhopping_confidence):
             # Agreeing result
             self.successful_results[
                 self.current_success_number
@@ -72,7 +76,7 @@ class BasinhoppingWrapper(object):
             self.current_success_number += 1
 
         elif (minimise_function_result <
-              np.nanmin(self.successful_results) - self.confidence):
+              np.nanmin(self.successful_results) - self.basinhopping_confidence):
             # New result
             self.successful_results[0] = minimise_function_result
             self.current_success_number = 1
@@ -87,7 +91,7 @@ class BasinhoppingWrapper(object):
 
         minimizer_config = {
             "method": 'L-BFGS-B',
-            "options": {'gtol': self.confidence},
+            "options": {'gtol': self.optimiser_confidence},
             "bounds": self.bounds
         }
 
